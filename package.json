@@ -1,6 +1,6 @@
 {
 	"name": "@gggdomi/rrh-auth",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "",
 	"license": "MIT",
 	"main": "src/index.js",
@@ -18,14 +18,13 @@
 		""
 	],
 	"dependencies": {
-		"@gggdomi/rrh": "^0.1.0",
 		"jwt-decode": "^2.2.0"
 	},
 	"devDependencies": {
 		"redux-saga": "^0.16.2"
 	},
 	"peerDependencies": {
-		"@gggdomi/rrh": "^0.0.2",
+		"@gggdomi/rrh": "^0.1.0",
 		"connected-react-router": "^5.0.0",
 		"react": "^16.6.0",
 		"react-redux": "^5.1.0",
