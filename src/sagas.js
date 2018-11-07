@@ -1,6 +1,6 @@
 import { put, takeEvery } from 'redux-saga/effects'
 import { push } from 'connected-react-router'
-import jwtDecode from 'jwt-decode'
+//import jwtDecode from 'jwt-decode'
 
 import { loggedInAction, logOutAction } from './'
 
@@ -14,8 +14,9 @@ export function* listenToLogin() {
     const actions = rrhActions[groupName]
 
     if (actions.isLoginRoute) {
-      const accessToken = action.data.access_token
-      const username = jwtDecode(accessToken).identity
+      // const accessToken = action.data.access_token
+      // const username = jwtDecode(accessToken).identity
+      const username = action.data.username
       localStorage.setItem('series-session-username', username)
       yield put(loggedInAction(username))
     }
