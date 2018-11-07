@@ -35,7 +35,9 @@ export const makeLogoutSaga = (loginRoute = '/login/') =>
     yield takeEvery(logOutAction().type, function*() {
       localStorage.removeItem('series-session-username')
 
-      const logoutRRHName = Object.keys(rrhActions).find(x => rrhActions[x].isLogoutRoute)
+      const logoutRRHName = Object.keys(rrhActions).find(
+        x => rrhActions[x].isLogoutRoute
+      )
       const logoutRRH = rrhActions[logoutRRHName]
       if (logoutRRH) yield put(logoutRRH.Start())
 
