@@ -1,34 +1,34 @@
 {
-	"name": "@gggdomi/rrh-auth",
-	"version": "0.1.2",
-	"description": "",
-	"license": "MIT",
-	"main": "src/index.js",
-	"author": {
-		"name": "Guillaume Dominici",
-		"url": "http://dominici.io"
-	},
-	"engines": {
-		"node": ">=8"
-	},
-	"files": [
-		"src/*.js"
-	],
-	"keywords": [
-		""
-	],
-	"dependencies": {
-		"jwt-decode": "^2.2.0"
-	},
-	"devDependencies": {
-		"redux-saga": "^0.16.2"
-	},
-	"peerDependencies": {
-		"@gggdomi/rrh": "^0.1.0",
-		"connected-react-router": "^5.0.0",
-		"react": "^16.6.0",
-		"react-redux": "^5.1.0",
-		"react-router": "^4.3.1",
-		"redux": "^4.0.1"
-	}
+  "name": "@gggdomi/rrh-auth",
+  "version": "0.1.2",
+  "description": "",
+  "license": "MIT",
+  "main": "src/index.js",
+  "author": {
+    "name": "Guillaume Dominici",
+    "url": "http://dominici.io"
+  },
+  "engines": {
+    "node": ">=8"
+  },
+  "files": [
+    "src/*.js"
+  ],
+  "keywords": [
+    ""
+  ],
+  "dependencies": {
+    "jwt-decode": "^2.2.0"
+  },
+  "devDependencies": {
+    "redux-saga": "^0.16.2"
+  },
+  "peerDependencies": {
+    "@gggdomi/rrh": "^0.1.0",
+    "connected-react-router": "^5.0.0",
+    "react": "^16.6.0",
+    "react-redux": "^5.1.0",
+    "react-router": "^4.3.1",
+    "redux": "^4.0.1"
+  }
 }
