@@ -1,6 +1,6 @@
 import { put, takeEvery } from 'redux-saga/effects'
 import { push } from 'connected-react-router'
-//import jwtDecode from 'jwt-decode'
+import jwtDecode from 'jwt-decode'
 
 import { loggedInAction, logOutAction } from './'
 
@@ -14,11 +14,12 @@ export function* listenToLogin() {
     const actions = rrhActions[groupName]
 
     if (actions.isLoginRoute) {
-      // const accessToken = action.data.access_token
-      // const username = jwtDecode(accessToken).identity
-      const username = action.data.username
-      localStorage.setItem('series-session-username', username)
-      yield put(loggedInAction(username))
+      const accessToken = action.data.access_token
+      const username = jwtDecode(accessToken).identity
+      //const username = action.data.username
+      localStorage.setItem('rrh-auth-username', username)
+      localStorage.setItem('rrh-auth-token', accessToken)
+      yield put(loggedInAction(username, accessToken))
     }
   })
 }
@@ -34,7 +35,8 @@ export function* logoutOn401() {
 export const makeLogoutSaga = (loginRoute = '/login/') =>
   function* logoutSaga() {
     yield takeEvery(logOutAction().type, function*() {
-      localStorage.removeItem('series-session-username')
+      localStorage.removeItem('rrh-auth-username')
+      localStorage.removeItem('rrh-auth-token')
 
       const logoutRRHName = Object.keys(rrhActions).find(
         x => rrhActions[x].isLogoutRoute

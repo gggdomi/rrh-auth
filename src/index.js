@@ -1,18 +1,20 @@
-export const loggedInAction = username => ({
+export const loggedInAction = (username, accessToken) => ({
   type: '@AUTH/LOGGED_IN',
   username,
+  accessToken,
 })
 
 export const logOutAction = () => ({
   type: '@AUTH/LOGGED_OUT',
 })
 
-const initialAuthState = {
-  username: localStorage.getItem('series-session-username', null),
-  accessToken: null,
-}
+// VERY DIRTY HACK so we can use the token without accessing state
+let accessToken = localStorage.getItem('rrh-auth-token', null)
 
-let accessToken = null // VERY DIRTY HACK so we can use the token without accessing state
+const initialAuthState = {
+  username: localStorage.getItem('rrh-auth-username', null),
+  accessToken: accessToken,
+}
 
 export const authReducer = (state = initialAuthState, action) => {
   if (action.type === loggedInAction().type) {
