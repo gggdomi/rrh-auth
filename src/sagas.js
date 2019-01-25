@@ -4,35 +4,40 @@ import jwtDecode from 'jwt-decode'
 
 import rrhAuth, { loggedInAction, logOutAction } from './'
 
-import { rrhActions, rrhSuccessRegex, rrhFailRegex } from '@gggdomi/rrh'
+import rrh, { rrhActions, rrhSuccessRegex, rrhFailRegex } from '@gggdomi/rrh'
 
 // Extract credentials from server response if it is a "login endpoint"
 export function* listenToLogin() {
   yield takeEvery(action => action.type.match(rrhSuccessRegex), function*(
     action
   ) {
-    const groupName = action.type.match(rrhSuccessRegex)[1]
-    const actions = rrhActions[groupName]
+    const actions = rrhActions[action.groupName]
 
     if (actions.isLoginEndpoint) {
+      let accessToken = null
+      let infos = null
       if (rrhAuth.config.jwt) {
-        const accessToken = rrhAuth.config.jwt.getToken(action.data)
-        const infos = jwtDecode(accessToken)
+        accessToken = rrhAuth.config.jwt.getToken(action.data)
+        infos = rrhAuth.config.jwt.getInfos(jwtDecode(accessToken))
       }
-      localStorage.setItem('rrh-auth-infos', JSON.stringify(infos))
-      localStorage.setItem('rrh-auth-token', accessToken)
-      yield put(loggedInAction(infos, accessToken))
+
+      if (infos && accessToken) {
+        localStorage.setItem('rrh-auth-infos', JSON.stringify(infos))
+        localStorage.setItem('rrh-auth-token', accessToken)
+        yield put(loggedInAction(infos, accessToken))
+      }
     }
   })
 }
 
 export function* dispatchLogoutOn401() {
   yield takeEvery(action => action.type.match(rrhFailRegex), function*(action) {
+    const actions = rrhActions[action.groupName]
     if (
-      action.error.response &&
-      action.error.response.status === 401 &&
+      action.response &&
+      action.response.status === 401 &&
       rrhAuth.config.shouldLogoutOn401 &&
-      !action.startAction.ignore401
+      !actions.ignore401
     ) {
       yield put(logOutAction())
     }
@@ -64,8 +69,8 @@ export const makeLogoutSaga = ({
     })
   }
 
-export default loginRoute => [
+export default props => [
   listenToLogin,
-  makeLogoutSaga(loginRoute),
+  makeLogoutSaga(props),
   dispatchLogoutOn401,
 ]

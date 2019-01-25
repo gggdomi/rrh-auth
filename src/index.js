@@ -43,11 +43,7 @@ const beforeRequest = (action, options) => {
 }
 
 const enhanceStartAction = (startAction, params, options) => {
-  if (params.isLoginRoute) startAction.isLoginRoute = true
-
-  if (params.ignore401) startAction.ignore401 = true
-
-  if (params.authenticated === false) startAction.authenticated = false
+  if (options.authenticated === false) startAction.authenticated = false
 
   return startAction
 }
@@ -60,6 +56,7 @@ const rrhAuth = {
       use: true,
       getToken: data => data.access_token,
       makeAuthHeader: accessToken => 'Bearer ' + accessToken,
+      getInfos: data => data.identity,
     },
     shouldLogoutOn401: true,
     redirectToLoginOnLogout: true,
