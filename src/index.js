@@ -1,6 +1,6 @@
-export const loggedInAction = (username, accessToken) => ({
+export const loggedInAction = (infos, accessToken) => ({
   type: '@AUTH/LOGGED_IN',
-  username,
+  ...infos,
   accessToken,
 })
 
@@ -12,20 +12,20 @@ export const logOutAction = () => ({
 let accessToken = localStorage.getItem('rrh-auth-token', null)
 
 const initialAuthState = {
-  username: localStorage.getItem('rrh-auth-username', null),
+  ...JSON.parse(localStorage.getItem('rrh-auth-infos', null)),
   accessToken: accessToken,
 }
 
 export const authReducer = (state = initialAuthState, action) => {
   if (action.type === loggedInAction().type) {
     accessToken = action.accessToken
+    const { type, ...infos } = action
     return {
       ...state,
-      username: action.username,
-      accessToken: action.accessToken,
+      ...infos,
     }
   }
-  if (action.type === logOutAction().type) return { ...state, username: null }
+  if (action.type === logOutAction().type) return {}
   return state
 }
 
@@ -42,4 +42,11 @@ const beforeRequest = options => {
 
 export default {
   beforeRequest,
+  config: {
+    jwt: {
+      use: true,
+      getToken: data => data.access_token,
+      makeAuthHeader: accessToken => 'Bearer ' + accessToken,
+    },
+  },
 }

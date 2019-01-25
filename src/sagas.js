@@ -2,7 +2,7 @@ import { put, takeEvery } from 'redux-saga/effects'
 import { push } from 'connected-react-router'
 import jwtDecode from 'jwt-decode'
 
-import { loggedInAction, logOutAction } from './'
+import rrhAuth, { loggedInAction, logOutAction } from './'
 
 import { rrhActions, rrhSuccessRegex, rrhFailRegex } from '@gggdomi/rrh'
 
@@ -13,13 +13,14 @@ export function* listenToLogin() {
     const groupName = action.type.match(rrhSuccessRegex)[1]
     const actions = rrhActions[groupName]
 
-    if (actions.isLoginRoute) {
-      const accessToken = action.data.access_token
-      const username = jwtDecode(accessToken).identity
-      //const username = action.data.username
-      localStorage.setItem('rrh-auth-username', username)
+    if (actions.isLoginEndpoint) {
+      if (rrhAuth.config.jwt) {
+        const accessToken = rrhAuth.config.jwt.getToken(action.data)
+        const infos = jwtDecode(accessToken)
+      }
+      localStorage.setItem('rrh-auth-infos', JSON.stringify(infos))
       localStorage.setItem('rrh-auth-token', accessToken)
-      yield put(loggedInAction(username, accessToken))
+      yield put(loggedInAction(infos, accessToken))
     }
   })
 }
