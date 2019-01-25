@@ -8,7 +8,7 @@ export const logOutAction = () => ({
   type: '@AUTH/LOGGED_OUT',
 })
 
-// VERY DIRTY HACK so we can use the token without accessing state
+// VERY DIRTY HACK so we can use the token without accessing state (ie. in beforeRequest)
 let accessToken = localStorage.getItem('rrh-auth-token', null)
 
 const initialAuthState = {
@@ -29,24 +29,42 @@ export const authReducer = (state = initialAuthState, action) => {
   return state
 }
 
-const beforeRequest = options => {
+const beforeRequest = (action, options) => {
   if (!accessToken) return options
+  if (action.authenticated === false) return options
+
   return {
     ...options,
     headers: {
       ...(options.headers || {}),
-      Authorization: 'Bearer ' + accessToken,
+      Authorization: rrhAuth.config.jwt.makeAuthHeader(accessToken),
     },
   }
 }
 
-export default {
+const enhanceStartAction = (startAction, params, options) => {
+  if (params.isLoginRoute) startAction.isLoginRoute = true
+
+  if (params.ignore401) startAction.ignore401 = true
+
+  if (params.authenticated === false) startAction.authenticated = false
+
+  return startAction
+}
+
+const rrhAuth = {
   beforeRequest,
+  enhanceStartAction,
   config: {
     jwt: {
       use: true,
       getToken: data => data.access_token,
       makeAuthHeader: accessToken => 'Bearer ' + accessToken,
     },
+    shouldLogoutOn401: true,
+    redirectToLoginOnLogout: true,
+    serversideLogout: true,
   },
 }
+
+export default rrhAuth

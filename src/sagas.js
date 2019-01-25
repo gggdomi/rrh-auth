@@ -6,6 +6,7 @@ import rrhAuth, { loggedInAction, logOutAction } from './'
 
 import { rrhActions, rrhSuccessRegex, rrhFailRegex } from '@gggdomi/rrh'
 
+// Extract credentials from server response if it is a "login endpoint"
 export function* listenToLogin() {
   yield takeEvery(action => action.type.match(rrhSuccessRegex), function*(
     action
@@ -25,32 +26,46 @@ export function* listenToLogin() {
   })
 }
 
-export function* logoutOn401() {
+export function* dispatchLogoutOn401() {
   yield takeEvery(action => action.type.match(rrhFailRegex), function*(action) {
-    if (action.error.response && action.error.response.status === 401) {
+    if (
+      action.error.response &&
+      action.error.response.status === 401 &&
+      rrhAuth.config.shouldLogoutOn401 &&
+      !action.startAction.ignore401
+    ) {
       yield put(logOutAction())
     }
   })
 }
 
-export const makeLogoutSaga = (loginRoute = '/login/') =>
+export const makeLogoutSaga = ({
+  loginRoute = '/login/', // in react router
+  logoutEndpoint = '/logout/', // on the server
+}) =>
   function* logoutSaga() {
+    const logoutRRH = logoutEndpoint
+      ? rrh.new('LOGOUT_RRH_AUTH', logoutEndpoint)
+      : null
+
     yield takeEvery(logOutAction().type, function*() {
-      localStorage.removeItem('rrh-auth-username')
+      // 1. Remove credentials from local storage
+      localStorage.removeItem('rrh-auth-infos')
       localStorage.removeItem('rrh-auth-token')
 
-      const logoutRRHName = Object.keys(rrhActions).find(
-        x => rrhActions[x].isLogoutRoute
-      )
-      const logoutRRH = rrhActions[logoutRRHName]
-      if (logoutRRH) yield put(logoutRRH.Start())
+      // 2. Call logout endpoint on server
+      if (rrhAuth.config.serversideLogout && logoutRRH) {
+        yield put(logoutRRH.Start())
+      }
 
-      yield put(push(loginRoute))
+      // 3. Redirect to /login/
+      if (rrhAuth.config.redirectToLoginOnLogout && loginRoute)
+        yield put(push(loginRoute))
     })
   }
 
 export default loginRoute => [
   listenToLogin,
   makeLogoutSaga(loginRoute),
-  logoutOn401,
+  dispatchLogoutOn401,
 ]
