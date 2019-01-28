@@ -1,57 +1,160 @@
-Helper function created for personal use
+Plugin for [RRH](https://github.com/gggdomi/rrh) to help with authentication workflow. Store credentials, authenticate requests and redirect to login if needed.
 
-## Client Side
+## Installation
+
+### Pre-requisites
+
+- [RRH](https://github.com/gggdomi/rrh) need to be set up
+- [connected-react-router](https://github.com/supasate/connected-react-router) is required to be able to change location by dispacthing action. It's a drop-in replacement for `react-router` and might be of use if you mix react-router with redux in your project.
+
+### Add to RRH plugins
+
+```js
+// index.js
+import rrh from '@gggdomi/rrh'
+import rrhAuth from '@gggdomi/rrh-auth'
+
+rrh.plugins = [rrhAuth]
+```
 
 ### Add auth reducer
 
 ```js
+// reducers.js
+import { rrhReducers } from '@gggdomi/rrh' // from RRH readme
 import { authReducer } from '@gggdomi/rrh-auth'
 
-...
-
-export const rootReducer = history =>
-  combineReducers({
-    main: mainReducer,
+export const rootReducer = combineReducers({
+    your: yourReducer,
+    rrh: combineReducers(rrhReducers), // from RRH readme
     auth: authReducer,
-    ...
   })
 ```
 
-### Add sagas to the app
-
-Note: takes the login route as a parameter
+### Add rrh-auth sagas to the app
 
 ```js
-import rrhSagas from '@gggdomi/rrh/src/sagas'
+// index.js
+import rrhAuthSagas from '@gggdomi/rrh-auth/src/sagas'
 
-...
+// configure saga middleware...
 
-export default [
-  ...rrhSagas,
-  ...rrhAuthSagas('/login/'),  // login path in react-router 
-  // used for redirection if 401 or logout
-  moreSagas,
-  ...
-]
+rrhAuthSagas.map(sagaMiddleware.run)
 ```
 
-### Say which _server-side_ endpoints are used to login
+### Tell which _server-side_ endpoints are used to login
+
+`isLoginEndpoint` will tell `rrh-auth` to look for credentials when calling these endpoints
 
 ```js
 import rrh from '@gggdomi/rrh'
 
 export const postLogin = rrh.new('SUBMIT_LOGIN', '/login/', {
   method: 'POST',
-  isLoginRoute: true, // here
-})
-
-export const postSignup = rrh.new('SUBMIT_SIGNUP', '/signup/', {
-  method: 'POST',
-  isLoginRoute: true, // here
+  isLoginEndpoint: true, // here
 })
 ```
 
-### Listen to loggedInAction to redirect or more
+## Usage
+
+### Dispatch actions to log in/out
+
+```js
+import { logOutAction } from '@gggdomi/rrh-auth'
+import { postLogin } from './actions'
+
+const ExComponent = ({ triggerLogOut }) => (
+  <button onClick={triggerLogIn}>Log in</button>
+  <button onClick={triggerLogOut}>Log out</button>
+)
+
+const mapDispatchToProps = dispatch => ({
+  triggerLogIn: () => dispatch(postLogin.Start({  
+    // using postLogin route created above
+    data: {user: "John", pass: "123456" }
+  })),
+  triggerLogOut: () => dispatch(logOutAction()),
+})
+
+export default connect(null, mapDispatchToProps)(ExComponent)
+```
+
+## Configuration
+
+Right now `rrh-auth` only supports authentication via JWT tokens and Authorization header. Other authentication means could easily be added, feel free to open an issue if needed.
+
+```js
+// rrhAuth.config:
+{
+  jwt: {
+    // to use rrh-auth with jwt (default: true)
+    use: true,
+    
+    // how to extract JWT token from the server response
+    getToken: data => data.access_token,  // <- default value
+    
+    // how to create the Authorization header given the token
+    makeAuthHeader: accessToken => 'Bearer ' + accessToken, // <- default value
+    
+    // how to extract user infos from decoded token
+    getInfos: data => data.identity, // <- default value
+  },
+
+  // set to true to automatically logout when getting a 401 status (ie. invalid/missing credentials) (default: true)
+  shouldLogoutOn401: true,
+  
+  // if not null, we push this URL (default: '/')
+  redirectToOnLoggedIn: '/home/',
+  
+  // if not null, set to true to automatically display login page when logging out (default: '/login/')
+  loginRoute: '/login/',
+  
+  // if not null, this endpoint will be called on the server when logging out (default: '/logout/')
+  logoutEndpoint: '/logout/',
+}
+```
+
+### Example:
+
+Let's say your API:
+- on successful login (POST on '/login/'), the server returns a response containing a token `{ apiToken: "xxxxxxxxxxxx" }`
+- is authenticated via Authorization header, with format "Token xxxxxxxxxxxxx".
+- once decoded, the user infos are available on the `infos` property of the token
+- you need to GET /destroy/ to logout serverside
+
+To configure rrh-auth accordingly:
+
+```js
+import rrhAuth from '@gggdomi/rrh-auth'
+
+rrhAuth.config.jwt.getToken = data => data.apiToken
+rrhAuth.config.jwt.makeAuthHeader = token => `Token ${token}`
+rrhAuth.config.jwt.getInfos = x => x.infos
+rrhAuth.config.logoutEndpoint = '/destroy/'
+```
+
+### Routes options
+
+```js
+import rrh from '@gggdomi/rrh'
+
+export const fetchPosts = rrh.new('FETCH_POSTS', '/posts/', {
+  // will tell rrh-auth to look for credentials when calling these endpoints (default: false)
+  isLoginEndpoint: false,
+  
+  // if set to true, we won't redirect to login for this route if we get a 401 from server (default: false)
+  ignore401: true, 
+
+  // if set to false, we won't attach token to request (default: true)
+  authenticated: false,
+})
+```
+
+## Advanced customization
+
+Redirection to login page on logout or invalid credentials, and calling a server endpoint on logout are built in `rrh-auth` by default. If you need more specific behavior, you can set `loginRoute` and `logoutEndpoint` to `null` and then take `logOutAction` and `loggedInAction` in your own sagas
+
+Example:
 
 ```js
 import { logOutAction, loggedInAction } from '@gggdomi/rrh-auth'
@@ -59,74 +162,18 @@ import { push } from 'connected-react-router'
 
 export function* loggedInSaga() {
   yield takeEvery(loggedInAction().type, function*(action) {
+    // We do some stuff and redirect to root on successful login
+    doSomeStuff()
     yield put(push('/'))
   })
 }
 
-export default [
-  ...
-  loggedInSaga,
-  ...
-]
-```
-
-### Listen to logOutAction to call server side logout or more
-
-```js
-import axios from 'axios'
-import { BASE_URL_BACK } from 'consts'
-import { logOutAction, loggedInAction } from '@gggdomi/rrh-auth'
-
 export function* logOutSaga() {
   yield takeEvery(logOutAction().type, function*(action) {
-    yield axios.get(`${BASE_URL_BACK}/logout/`)
+    // we do some stuff on logout
+    doSomeStuff()
   })
 }
 
-export default [
-  ...
-  logOutSaga,
-  ...
-]
+// don't forget to then run the sagas
 ```
-
-### Dispatch logOutAction to log out
-
-```js
-import { logOutAction } from '@gggdomi/rrh-auth'
-
-...
-
-const mapDispatchToProps = dispatch => ({
-  triggerLogOut: () => {
-    dispatch(logOutAction())
-  },
-})
-```
-
-## Server side
-
-### Login endpoint
-
-Params : rrh-auth doesn't care
-Returns :
-- 401 + `{"msg": "Bad password..."}` if login failed
-- 200 + add cookies + `{"access_token": "...."}` if success
-
-### Protected endpoints
-
-Should simply return 401 if not logged in
-
-### Logout endpoint
-
-Just remove cookies or whatever, rrh-auth doesn't care
-
-## TODO
-
-- Breaking: change isLoginRoute to isLoginEndpoint for clarification
-- Add params:
-    + `redirectToOnLogin`: push if defined ?
-    + `logoutEndpoint`: call if defined ? Note: today `isLogoutRoute` has a similar function but is not really used
-- JWT, session, cookies, local-storage... configurations
-- 401 vs 403 if some ressources are protected but should not lead to disconnection
-- Extract error message on 401
