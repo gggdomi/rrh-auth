@@ -38,7 +38,7 @@
     "@gggdomi/rrh": "^0.2.0",
     "connected-react-router": "^6.2.2",
     "react": "^16.6.0",
-    "react-redux": "^5.1.0",
+    "react-redux": "^6.0.0",
     "react-router": "^4.3.1",
     "redux": "^4.0.1",
     "redux-saga": "^1.0.0"
