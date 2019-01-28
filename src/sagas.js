@@ -44,33 +44,32 @@ export function* dispatchLogoutOn401() {
   })
 }
 
-export const makeLogoutSaga = ({
-  loginRoute = '/login/', // in react router
-  logoutEndpoint = '/logout/', // on the server
-}) =>
-  function* logoutSaga() {
-    const logoutRRH = logoutEndpoint
-      ? rrh.new('LOGOUT_RRH_AUTH', logoutEndpoint)
-      : null
+function* logoutSaga() {
+  const logoutRRH = rrh.new('LOGOUT_RRH_AUTH', '') // url will be overridden
 
-    yield takeEvery(logOutAction().type, function*() {
-      // 1. Remove credentials from local storage
-      localStorage.removeItem('rrh-auth-infos')
-      localStorage.removeItem('rrh-auth-token')
+  yield takeEvery(logOutAction().type, function*() {
+    // 1. Remove credentials from local storage
+    localStorage.removeItem('rrh-auth-infos')
+    localStorage.removeItem('rrh-auth-token')
 
-      // 2. Call logout endpoint on server
-      if (rrhAuth.config.serversideLogout && logoutRRH) {
-        yield put(logoutRRH.Start())
-      }
+    // 2. Call logout endpoint on server
+    if (rrhAuth.config.logoutEndpoint != null) {
+      yield put(
+        logoutRRH.Start({ overrideRoute: rrhAuth.config.logoutEndpoint })
+      )
+    }
 
-      // 3. Redirect to /login/
-      if (rrhAuth.config.redirectToLoginOnLogout && loginRoute)
-        yield put(push(loginRoute))
-    })
-  }
+    // 3. Redirect to /login/
+    if (rrhAuth.config.loginRoute != null)
+      yield put(push(loginRoute))
+  })
+}
 
-export default props => [
-  listenToLogin,
-  makeLogoutSaga(props),
-  dispatchLogoutOn401,
-]
+function* loggedInSaga() {
+  yield takeEvery(loggedInAction().type, function*(action) {
+    if (rrhAuth.config.redirectToOnLoggedIn != null)
+      yield put(push(rrhAuth.config.redirectToOnLoggedIn))
+  })
+}
+
+export default props => [listenToLogin, logoutSaga, loggedInSaga, dispatchLogoutOn401]

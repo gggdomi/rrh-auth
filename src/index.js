@@ -1,11 +1,11 @@
 export const loggedInAction = (infos, accessToken) => ({
-  type: '@AUTH/LOGGED_IN',
+  type: '@RRH-AUTH/LOGGED_IN',
   ...infos,
   accessToken,
 })
 
 export const logOutAction = () => ({
-  type: '@AUTH/LOGGED_OUT',
+  type: '@RRH-AUTH/LOGGED_OUT',
 })
 
 // VERY DIRTY HACK so we can use the token without accessing state (ie. in beforeRequest)
@@ -59,8 +59,9 @@ const rrhAuth = {
       getInfos: data => data.identity,
     },
     shouldLogoutOn401: true,
-    redirectToLoginOnLogout: true,
-    serversideLogout: true,
+    redirectToOnLoggedIn: '/',
+    loginRoute: '/login/', // in react router
+    logoutEndpoint: '/logout/', // on the server
   },
 }
 
