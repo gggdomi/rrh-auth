@@ -1,6 +1,6 @@
 {
   "name": "@gggdomi/rrh-auth",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Plugin for RRH to help with authentication workflow. Store credentials, authenticate requests and redirect to login if needed.",
   "license": "MIT",
   "main": "src/index.js",
