@@ -7,6 +7,8 @@ Plugin for [RRH](https://github.com/gggdomi/rrh) to help with authentication wor
 - [RRH](https://github.com/gggdomi/rrh) need to be set up
 - [connected-react-router](https://github.com/supasate/connected-react-router) is required to be able to change location by dispacthing action. It's a drop-in replacement for `react-router` and might be of use if you mix react-router with redux in your project.
 
+`yarn add @gggdomi/rrh-auth`
+
 ### Add to RRH plugins
 
 ```js
