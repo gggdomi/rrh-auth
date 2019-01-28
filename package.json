@@ -1,7 +1,7 @@
 {
   "name": "@gggdomi/rrh-auth",
   "version": "0.1.3",
-  "description": "",
+  "description": "Plugin for RRH to help with authentication workflow. Store credentials, authenticate requests and redirect to login if needed.",
   "license": "MIT",
   "main": "src/index.js",
   "author": {
@@ -15,7 +15,11 @@
     "src/*.js"
   ],
   "keywords": [
-    ""
+    "redux auth",
+    "redux authentication",
+    "redux authentication helper",
+    "redux jwt",
+    "rrh"
   ],
   "dependencies": {
     "jwt-decode": "^2.2.0"
@@ -30,7 +34,7 @@
   },
   "peerDependencies": {
     "connected-react-router": "^6.2.2",
-    "@gggdomi/rrh": "^0.1.0",
+    "@gggdomi/rrh": "^0.2.0",
     "react": "^16.6.0",
     "react-redux": "^5.1.0",
     "react-router": "^4.3.1",
