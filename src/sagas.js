@@ -60,8 +60,7 @@ function* logoutSaga() {
     }
 
     // 3. Redirect to /login/
-    if (rrhAuth.config.loginRoute != null)
-      yield put(push(loginRoute))
+    if (rrhAuth.config.loginRoute != null) yield put(push(loginRoute))
   })
 }
 
@@ -72,4 +71,9 @@ function* loggedInSaga() {
   })
 }
 
-export default props => [listenToLogin, logoutSaga, loggedInSaga, dispatchLogoutOn401]
+export default props => [
+  listenToLogin,
+  logoutSaga,
+  loggedInSaga,
+  dispatchLogoutOn401,
+]
