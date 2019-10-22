@@ -1,68 +1,72 @@
-export const loggedInAction = (infos, accessToken) => ({
-  type: '@RRH-AUTH/LOGGED_IN',
-  ...infos,
-  accessToken,
-})
+import { makeSagas } from "./sagas"
+import { loggedInAction, logOutAction } from './actions'
 
-export const logOutAction = () => ({
-  type: '@RRH-AUTH/LOGGED_OUT',
-})
-
-// VERY DIRTY HACK so we can use the token without accessing state (ie. in beforeRequest)
-let accessToken = localStorage.getItem('rrh-auth-token', null)
-
-const initialAuthState = {
-  ...JSON.parse(localStorage.getItem('rrh-auth-infos', null)),
-  accessToken: accessToken,
+const defaultOptions = {
+  jwt: {
+    use: true,
+    getToken: data => data.access_token,
+    makeAuthHeader: accessToken => 'Bearer ' + accessToken,
+    getInfos: data => data.identity,
+  },
+  shouldLogoutOn401: true,
+  redirectToOnLoggedIn: '/',
+  loginRoute: '/login/', // in react router
+  logoutEndpoint: '/logout/', // on the server
+  storageGet: (key, defaultValue) => localStorage.getItem(key, defaultValue),
+  storageSet: (key, item) => localStorage.setItem(key, item),
+  storageRemove: key => localStorage.removeItem(key),
+  storageTokenKey: 'rrh-auth-token',
+  storageInfosKey: 'rrh-auth-infos',
+  statePath: 'auth',
 }
 
-export const authReducer = (state = initialAuthState, action) => {
-  if (action.type === loggedInAction().type) {
-    accessToken = action.accessToken
-    const { type, ...infos } = action
+export const createRRHAuth = ({options = { jwt: {}}}) => rrh => {
+  const finalOptions = { ...defaultOptions, ...options, jwt: { ...defaultOptions.jwt, ...options.jwt }}
+
+  const rrhAuth = {
+    options: finalOptions,
+  }
+
+  const initialAuthState = {
+    ...JSON.parse(rrhAuth.options.storageGet(rrhAuth.options.storageInfosKey, null)),
+    accessToken: rrhAuth.options.storageGet(rrhAuth.options.storageTokenKey, null),
+  }
+
+  rrh.authReducer = (state = initialAuthState, action) => {
+    if (action.type === loggedInAction().type) {
+      const { type, ...infos } = action
+      return {
+        ...state,
+        ...infos,
+      }
+    }
+    if (action.type === logOutAction().type) return {}
+    return state
+  }
+
+  rrhAuth.beforeRequest = (action, options) => {
+    const accessToken = rrh.store.getState()[rrhAuth.options.statePath].accessToken
+    if (!accessToken) return options
+    if (action.authenticated === false) return options
+
     return {
-      ...state,
-      ...infos,
+      ...options,
+      headers: {
+        ...(options.headers || {}),
+        Authorization: rrhAuth.options.jwt.makeAuthHeader(accessToken),
+      },
     }
   }
-  if (action.type === logOutAction().type) return {}
-  return state
-}
 
-const beforeRequest = (action, options) => {
-  if (!accessToken) return options
-  if (action.authenticated === false) return options
+  rrhAuth.enhanceStartAction = (startAction, params, options) => {
+    if (options.authenticated === false) startAction.authenticated = false
 
-  return {
-    ...options,
-    headers: {
-      ...(options.headers || {}),
-      Authorization: rrhAuth.config.jwt.makeAuthHeader(accessToken),
-    },
+    return startAction
   }
+
+  rrhAuth.sagas = makeSagas(rrhAuth, rrh)
+
+  return rrhAuth
 }
 
-const enhanceStartAction = (startAction, params, options) => {
-  if (options.authenticated === false) startAction.authenticated = false
-
-  return startAction
-}
-
-const rrhAuth = {
-  beforeRequest,
-  enhanceStartAction,
-  config: {
-    jwt: {
-      use: true,
-      getToken: data => data.access_token,
-      makeAuthHeader: accessToken => 'Bearer ' + accessToken,
-      getInfos: data => data.identity,
-    },
-    shouldLogoutOn401: true,
-    redirectToOnLoggedIn: '/',
-    loginRoute: '/login/', // in react router
-    logoutEndpoint: '/logout/', // on the server
-  },
-}
-
-export default rrhAuth
+export { loggedInAction, logOutAction }
