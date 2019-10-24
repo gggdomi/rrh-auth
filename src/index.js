@@ -12,7 +12,7 @@ const defaultOptions = {
   redirectToOnLoggedIn: '/',
   loginRoute: '/login/', // in react router
   logoutEndpoint: '/logout/', // on the server
-  storageGet: (key, defaultValue) => localStorage.getItem(key, defaultValue),
+  storageGet: key => localStorage.getItem(key),
   storageSet: (key, item) => localStorage.setItem(key, item),
   storageRemove: key => localStorage.removeItem(key),
   storageTokenKey: 'rrh-auth-token',
@@ -28,8 +28,8 @@ export const createRRHAuth = ({options = { jwt: {}}}) => rrh => {
   }
 
   const initialAuthState = {
-    ...JSON.parse(rrhAuth.options.storageGet(rrhAuth.options.storageInfosKey, null)),
-    accessToken: rrhAuth.options.storageGet(rrhAuth.options.storageTokenKey, null),
+    ...JSON.parse(rrhAuth.options.storageGet(rrhAuth.options.storageInfosKey)),
+    accessToken: rrhAuth.options.storageGet(rrhAuth.options.storageTokenKey),
   }
 
   rrh.authReducer = (state = initialAuthState, action) => {
