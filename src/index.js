@@ -1,5 +1,9 @@
 import { makeSagas } from './sagas'
-import { loggedInAction, logOutAction } from './actions'
+import {
+  loggedInAction,
+  logOutAction,
+  initialStateLoadedAction,
+} from './actions'
 
 const defaultOptions = {
   jwt: {
@@ -30,11 +34,17 @@ export const createRRHAuth = ({ options = { jwt: {} } }) => rrh => {
     options: finalOptions,
   }
 
-  const initialAuthState = {
-    ...JSON.parse(rrhAuth.options.storageGet(rrhAuth.options.storageKey)),
+  rrhAuth.loadInitialStateAsync = async () => {
+    const authData = await rrhAuth.options.storageGet(
+      rrhAuth.options.storageKey
+    )
+    rrh.store.dispatch(initialStateLoadedAction(JSON.parse(authData)))
   }
 
-  rrh.authReducer = (state = initialAuthState, action) => {
+  rrh.authReducer = (state = { accessToken: null }, action) => {
+    if (action.type === initialStateLoadedAction().type)
+      return { ...state, ...action.authData }
+
     if (action.type === loggedInAction().type) {
       const { type, ...infos } = action
       return {
@@ -69,7 +79,9 @@ export const createRRHAuth = ({ options = { jwt: {} } }) => rrh => {
 
   rrhAuth.sagas = makeSagas(rrhAuth, rrh)
 
+  rrh.rrhAuth = rrhAuth
+
   return rrhAuth
 }
 
-export { loggedInAction, logOutAction }
+export { loggedInAction, logOutAction, initialStateLoadedAction }

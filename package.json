@@ -1,6 +1,6 @@
 {
   "name": "@gggdomi/rrh-auth",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "repository": "github:gggdomi/rrh-auth",
   "description": "Plugin for RRH to help with authentication workflow. Store credentials, authenticate requests and redirect to login if needed.",
   "license": "MIT",
@@ -36,7 +36,7 @@
     "redux-saga": "^1.1.1"
   },
   "peerDependencies": {
-    "@gggdomi/rrh": "^0.2.0",
+    "@gggdomi/rrh": "^0.3.0",
     "connected-react-router": "^6.2.2",
     "react": "^16.10.2",
     "react-redux": "^7.1.1",
