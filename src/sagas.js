@@ -25,12 +25,8 @@ export const makeSagas = (rrhAuth, rrh) => {
 
         if (infos && accessToken) {
           rrhAuth.options.storageSet(
-            rrhAuth.options.storageInfosKey,
-            JSON.stringify(infos)
-          )
-          rrhAuth.options.storageSet(
-            rrhAuth.options.storageTokenKey,
-            accessToken
+            rrhAuth.options.storageKey,
+            JSON.stringify({ ...infos, accessToken })
           )
           yield put(loggedInAction(infos, accessToken))
         }
@@ -59,8 +55,7 @@ export const makeSagas = (rrhAuth, rrh) => {
 
     yield takeEvery(logOutAction().type, function*() {
       // 1. Remove credentials from local storage
-      rrhAuth.options.storageRemove(rrhAuth.options.storageInfosKey)
-      rrhAuth.options.storageRemove(rrhAuth.options.storageTokenKey)
+      rrhAuth.options.storageRemove(rrhAuth.options.storageKey)
 
       // 2. Call logout endpoint on server
       if (rrhAuth.options.logoutEndpoint != null) {

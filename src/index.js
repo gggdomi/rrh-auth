@@ -15,8 +15,7 @@ const defaultOptions = {
   storageGet: key => localStorage.getItem(key),
   storageSet: (key, item) => localStorage.setItem(key, item),
   storageRemove: key => localStorage.removeItem(key),
-  storageTokenKey: 'rrh-auth-token',
-  storageInfosKey: 'rrh-auth-infos',
+  storageKey: 'rrh-auth-token',
   statePath: 'auth',
 }
 
@@ -32,8 +31,7 @@ export const createRRHAuth = ({ options = { jwt: {} } }) => rrh => {
   }
 
   const initialAuthState = {
-    ...JSON.parse(rrhAuth.options.storageGet(rrhAuth.options.storageInfosKey)),
-    accessToken: rrhAuth.options.storageGet(rrhAuth.options.storageTokenKey),
+    ...JSON.parse(rrhAuth.options.storageGet(rrhAuth.options.storageKey)),
   }
 
   rrh.authReducer = (state = initialAuthState, action) => {
