@@ -24,8 +24,14 @@ export const makeSagas = (rrhAuth, rrh) => {
         }
 
         if (infos && accessToken) {
-          rrhAuth.options.storageSet(rrhAuth.options.storageInfosKey, JSON.stringify(infos))
-          rrhAuth.options.storageSet(rrhAuth.options.storageTokenKey, accessToken)
+          rrhAuth.options.storageSet(
+            rrhAuth.options.storageInfosKey,
+            JSON.stringify(infos)
+          )
+          rrhAuth.options.storageSet(
+            rrhAuth.options.storageTokenKey,
+            accessToken
+          )
           yield put(loggedInAction(infos, accessToken))
         }
       }
@@ -33,7 +39,9 @@ export const makeSagas = (rrhAuth, rrh) => {
   }
 
   function* dispatchLogoutOn401() {
-    yield takeEvery(action => action.type.match(rrhFailRegex), function*(action) {
+    yield takeEvery(action => action.type.match(rrhFailRegex), function*(
+      action
+    ) {
       const actions = rrh.actions[action.groupName]
       if (
         action.response &&

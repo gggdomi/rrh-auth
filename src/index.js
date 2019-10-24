@@ -1,4 +1,4 @@
-import { makeSagas } from "./sagas"
+import { makeSagas } from './sagas'
 import { loggedInAction, logOutAction } from './actions'
 
 const defaultOptions = {
@@ -20,8 +20,12 @@ const defaultOptions = {
   statePath: 'auth',
 }
 
-export const createRRHAuth = ({options = { jwt: {}}}) => rrh => {
-  const finalOptions = { ...defaultOptions, ...options, jwt: { ...defaultOptions.jwt, ...options.jwt }}
+export const createRRHAuth = ({ options = { jwt: {} } }) => rrh => {
+  const finalOptions = {
+    ...defaultOptions,
+    ...options,
+    jwt: { ...defaultOptions.jwt, ...options.jwt },
+  }
 
   const rrhAuth = {
     options: finalOptions,
@@ -45,7 +49,8 @@ export const createRRHAuth = ({options = { jwt: {}}}) => rrh => {
   }
 
   rrhAuth.beforeRequest = (action, options) => {
-    const accessToken = rrh.store.getState()[rrhAuth.options.statePath].accessToken
+    const accessToken = rrh.store.getState()[rrhAuth.options.statePath]
+      .accessToken
     if (!accessToken) return options
     if (action.authenticated === false) return options
 
